@@ -1,9 +1,9 @@
-import { motion } from "motion/react";
+import { motion, Variants } from "motion/react";
 import { Link } from "react-router-dom";
 import { Camera, Zap, CheckCircle, ArrowRight } from "lucide-react";
 
 export default function LandingPage() {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1,
@@ -11,7 +11,7 @@ export default function LandingPage() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { type: "spring", bounce: 0.4 } }
   };
