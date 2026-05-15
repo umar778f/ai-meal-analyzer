@@ -7,20 +7,33 @@ dotenv.config();
 
 const app = express();
 
-// FIX 1: Convert PORT to a number
+/** * Port configuration
+ * Number conversion fixes the "string | 3000" type error for Render
+ */
 const PORT = Number(process.env.PORT) || 3000; 
 
+/** * Middleware
+ * CORS is essential for allowing your Vercel frontend to communicate with this Render backend
+ * Increased limits allow for high-resolution image uploads
+ */
 app.use(cors()); 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Initialize the Google Generative AI client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// FIX 2: Explicitly type as ResponseSchema
+/** * Structured JSON Schema for Gemini
+ * Explicitly typed as ResponseSchema to fix the SchemaType mismatch error
+ */
 const mealResponseSchema: ResponseSchema = {
   type: SchemaType.OBJECT,
   properties: {
-    foodItems: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+    foodItems: { 
+      type: SchemaType.ARRAY, 
+      items: { type: SchemaType.STRING },
+      description: "List of detected food items"
+    },
     calories: { type: SchemaType.NUMBER },
     protein: { type: SchemaType.NUMBER },
     carbs: { type: SchemaType.NUMBER },
@@ -30,8 +43,14 @@ const mealResponseSchema: ResponseSchema = {
     sodium: { type: SchemaType.NUMBER },
     healthScore: { type: SchemaType.NUMBER },
     healthVerdict: { type: SchemaType.STRING },
-    healthierAlternatives: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
-    hydrationTips: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+    healthierAlternatives: { 
+      type: SchemaType.ARRAY, 
+      items: { type: SchemaType.STRING } 
+    },
+    hydrationTips: { 
+      type: SchemaType.ARRAY, 
+      items: { type: SchemaType.STRING } 
+    },
     mealBalanceAdvice: { type: SchemaType.STRING }
   },
   required: [
@@ -44,14 +63,21 @@ const mealResponseSchema: ResponseSchema = {
 app.post("/api/analyze-meal", async (req, res) => {
   try {
     const { imageBase64 } = req.body;
-    if (!imageBase64) return res.status(400).json({ error: "No image provided" });
+    
+    if (!imageBase64) {
+      return res.status(400).json({ error: "No image provided" });
+    }
 
+    // Determine mimeType and extract clean base64 data
     const match = imageBase64.match(/^data:(image\/[^;]+);base64,/);
-    if (!match) return res.status(400).json({ error: "Invalid image format" });
+    if (!match) {
+      return res.status(400).json({ error: "Invalid image format" });
+    }
     
     const mimeType = match[1];
     const base64Data = imageBase64.replace(/^data:image\/[^;]+;base64,/, "");
 
+    // Initialize the 1.5 Flash model with JSON output configuration
     const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-flash", 
       generationConfig: {
@@ -62,16 +88,27 @@ app.post("/api/analyze-meal", async (req, res) => {
 
     const result = await model.generateContent([
       { text: "Analyze this meal image for nutrition facts and provide healthy living advice." },
-      { inlineData: { mimeType, data: base64Data } }
+      {
+        inlineData: {
+          mimeType,
+          data: base64Data
+        }
+      }
     ]);
 
-    res.json(JSON.parse(result.response.text()));
+    // Send the structured AI response back to the frontend
+    const responseText = result.response.text();
+    res.json(JSON.parse(responseText));
+
   } catch (err: any) {
-    console.error("AI Error:", err);
+    console.error("AI Analysis Error:", err);
     res.status(500).json({ error: "Failed to analyze meal." });
   }
 });
 
+/** * Server Start
+ * Binds to 0.0.0.0 to ensure the service is reachable on Render
+ */
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Backend service running on port ${PORT}`);
 });
