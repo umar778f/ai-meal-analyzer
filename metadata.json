@@ -1,0 +1,10 @@
+{
+  "name": "AI Meal Analyzer",
+  "description": "Snap a photo of your food, and AI analyzes the meal to estimate calories, macros, and provide a health score with balanced suggestions.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
