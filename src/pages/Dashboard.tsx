@@ -12,11 +12,12 @@ export default function Dashboard() {
     setIsAnalyzing(true);
     setError(null);
     try {
-      const res = await fetch("/api/analyze-meal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64 }),
-      });
+      // Replace the URL with your actual Render web service link!
+const res = await fetch("https://your-service-name.onrender.com/api/analyze-meal", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ imageBase64: base64 }),
+});
       
       if (!res.ok) {
         throw new Error("Failed to analyze image");

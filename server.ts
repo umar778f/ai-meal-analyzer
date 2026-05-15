@@ -13,10 +13,12 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000; 
 
 /** * Middleware
- * CORS is essential for allowing your Vercel frontend to communicate with this Render backend
- * Increased limits allow for high-resolution image uploads
+ * CORS is locked down to ONLY allow requests from your specific Vercel frontend URL.
+ * Increased limits allow for high-resolution image uploads.
  */
-app.use(cors()); 
+app.use(cors({
+  origin: 'https://ai-meal-analyzer-ebon.vercel.app'
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
