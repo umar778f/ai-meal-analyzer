@@ -16,11 +16,11 @@ export default function Dashboard() {
       // Look at your Render Dashboard for your web service URL.
       // It should look something like: "https://ai-meal-analyzer-backend.onrender.com/api/analyze-meal"
       
-      const res = await fetch("https://PUT_YOUR_RENDER_URL_HERE.onrender.com/api/analyze-meal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64 }),
-      });
+      const res = await fetch("https://ai-meal-analyzer.onrender.com/api/analyze-meal", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageBase64: base64 }),
+});
       
       if (!res.ok) {
         throw new Error("Failed to analyze image");
