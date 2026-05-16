@@ -80,13 +80,14 @@ app.post("/api/analyze-meal", async (req, res) => {
     const base64Data = imageBase64.replace(/^data:image\/[^;]+;base64,/, "");
 
     // Initialize the 1.5 Flash model with JSON output configuration
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash", 
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: mealResponseSchema,
-      }
-    });
+    // Initialize the latest Flash model with JSON output configuration
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-flash-latest", 
+  generationConfig: {
+    responseMimeType: "application/json",
+    responseSchema: mealResponseSchema,
+  }
+});
 
     const result = await model.generateContent([
       { text: "Analyze this meal image for nutrition facts and provide healthy living advice." },
