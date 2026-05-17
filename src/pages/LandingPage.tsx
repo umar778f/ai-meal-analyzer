@@ -24,10 +24,6 @@ export default function LandingPage() {
         animate="visible"
         className="max-w-4xl max-w-2xl mx-auto space-y-8"
       >
-        <motion.div variants={itemVariants} className="inline-flex items-center space-x-2 glass-panel px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-emerald-400 border-white/10">
-          <Zap className="w-4 h-4" />
-          <span>Powered by Google Gemini 3.1</span>
-        </motion.div>
         
         <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-bold tracking-tight text-balance leading-[1.1]">
           Instantly <span className="text-gradient">analyze your meals</span> with AI.
