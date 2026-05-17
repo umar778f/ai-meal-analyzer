@@ -43,7 +43,10 @@ const mealResponseSchema: ResponseSchema = {
     sugar: { type: SchemaType.NUMBER },
     fiber: { type: SchemaType.NUMBER },
     sodium: { type: SchemaType.NUMBER },
-    healthScore: { type: SchemaType.NUMBER },
+    healthScore: { 
+      type: SchemaType.INTEGER, 
+      description: "Health score strictly between 1 and 10. DO NOT use percentages or a 100-point scale." 
+    },
     healthVerdict: { type: SchemaType.STRING },
     healthierAlternatives: { 
       type: SchemaType.ARRAY, 
@@ -79,18 +82,20 @@ app.post("/api/analyze-meal", async (req, res) => {
     const mimeType = match[1];
     const base64Data = imageBase64.replace(/^data:image\/[^;]+;base64,/, "");
 
-    // Initialize the 1.5 Flash model with JSON output configuration
     // Initialize the latest Flash model with JSON output configuration
-const model = genAI.getGenerativeModel({ 
-  model: "gemini-flash-latest", 
-  generationConfig: {
-    responseMimeType: "application/json",
-    responseSchema: mealResponseSchema,
-  }
-});
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-flash-latest", 
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: mealResponseSchema,
+      }
+    });
+
+    // Explicitly prompt the AI to use a 1-10 scale
+    const promptText = "Analyze this meal image for nutrition facts and provide healthy living advice. IMPORTANT: The healthScore MUST be an integer between 1 and 10. Do not use a 100-point scale.";
 
     const result = await model.generateContent([
-      { text: "Analyze this meal image for nutrition facts and provide healthy living advice." },
+      { text: promptText },
       {
         inlineData: {
           mimeType,
@@ -99,9 +104,23 @@ const model = genAI.getGenerativeModel({
       }
     ]);
 
-    // Send the structured AI response back to the frontend
+    // Parse the structured AI response
     const responseText = result.response.text();
-    res.json(JSON.parse(responseText));
+    let parsedData = JSON.parse(responseText);
+
+    // DEFENSIVE FALLBACK: Check if AI hallucinated a percentage (e.g., 95)
+    if (parsedData.healthScore > 10) {
+      // Convert 95 -> 9.5 -> rounds to 10. Convert 85 -> 8.5 -> rounds to 9.
+      parsedData.healthScore = Math.round(parsedData.healthScore / 10);
+    }
+    
+    // Final safety check just in case it still exceeds 10 somehow
+    if (parsedData.healthScore > 10) {
+      parsedData.healthScore = 10;
+    }
+
+    // Send the sanitized JSON back to the frontend
+    res.json(parsedData);
 
   } catch (err: any) {
     console.error("AI Analysis Error:", err);
